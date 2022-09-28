@@ -2,22 +2,31 @@ open Eio.Std
 
 let mbox = Eio.Mbox.create ()
 
+let total_sent = Atomic.make 0
+
 let sleepy_time clock =
   Eio.Time.sleep clock @@
-  Random.float 1.0
+  Random.float 0.5
 
 let sender ~clock s =
   while true do
     Eio.Mbox.send mbox s;
+    Atomic.incr total_sent;
     sleepy_time clock
   done
 
 let receiver ~clock =
-  while true do
-    let m = Eio.Mbox.recv mbox in
-    traceln "m=%s" m;
-    sleepy_time clock
-  done
+  let rec loop = function
+    | 100_000 ->
+      Eio.Time.sleep clock 5.0; (* XXX RACY *)
+      traceln "received 100_000 messages, total_sent is %d" (Atomic.get total_sent)
+    | n ->
+      let m = Eio.Mbox.recv mbox in
+      traceln "%d\t%s" n m;
+      sleepy_time clock;
+      loop (succ n)
+  in
+  loop 0
 
 let main ~domain_mgr ~clock =
   let domain_fork ~sw (f: unit -> unit) =
