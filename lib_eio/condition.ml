@@ -21,6 +21,14 @@ let await_no_mutex t =
   Mutex.lock t.mutex;
   Waiters.await ~mutex:(Some t.mutex) t.waiters t.id
 
+let await_interlocked t f =
+  Mutex.lock t.mutex;
+  while f () = false do
+    Waiters.await ~mutex:(Some t.mutex) t.waiters t.id;
+    Mutex.lock t.mutex; (* XXX: TERRIBLE *)
+  done;
+  Mutex.unlock t.mutex
+
 let broadcast t =
   Mutex.lock t.mutex;
   Waiters.wake_all t.waiters ();
