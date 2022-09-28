@@ -36,6 +36,7 @@ module Mutex = Eio_mutex
 
 (** Whatever *)
 module Mbox = Mbox
+module Mbox2 = Mbox2
 
 (** Waiting for a condition to become true. *)
 module Condition = Condition
