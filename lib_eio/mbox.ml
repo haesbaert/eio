@@ -14,7 +14,7 @@ let create () = {
   value = ref None;
 }
 
-let send (t:'a t) (m : string) : unit =
+let send (t:'a t) (m : 'a) : unit =
   let sent = ref false in
   let wait () =
     Mutex.lock t.mutex;

@@ -64,5 +64,3 @@ val broadcast : t -> unit
 (** [broadcast t] wakes up any waiting fibers (by appending them to the run-queue to resume later).
 
     If no fibers are waiting, nothing happens. *)
-
-val await_interlocked : t -> (unit -> bool) -> unit
