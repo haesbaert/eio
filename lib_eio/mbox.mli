@@ -6,9 +6,8 @@
    {!Mbox.send}. Readers will block if no value is present and writers
    will block if a value is already present.
 
-   Both sides synhcronize via the same mutex internal mutex so two
-   atomic operations are used per operation. There is no thundering
-   storm on blocked callers
+   Both sides synchronize via the same internal mutex. There is no thundering
+   storm effect on blocked callers.
 
    Example:
 
@@ -32,10 +31,9 @@ val send : 'a t -> 'a -> unit
     retrieves the message via [recv]. [send] is domain-safe and senders
     are blocked in a FIFO queue. *)
 
+val recv : 'a t -> 'a
 (** [recv t] retrieves message [m] from mailbox [t].
 
     If [t] is empty, [recv] blocks until someone calls [send] on
     it. [recv] is domain-safe and multiple readers are blocked in a
     FIFO queue. *)
-
-val recv : 'a t -> 'a
