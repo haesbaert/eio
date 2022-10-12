@@ -61,6 +61,8 @@ let getnameinfo (sockaddr : Eio.Net.Sockaddr.t) =
     | `Unix s -> (Unix.ADDR_UNIX s, [])
     | `Tcp (addr, port) -> (Unix.ADDR_INET (Ipaddr.to_unix addr, port), [])
     | `Udp (addr, port) -> (Unix.ADDR_INET (Ipaddr.to_unix addr, port), [Unix.NI_DGRAM])
+    | `Udp4 -> (Unix.ADDR_INET (Unix.inet_addr_any, 0), [Unix.NI_DGRAM])
+    | `Udp6 -> (Unix.ADDR_INET (Unix.inet6_addr_any, 0), [Unix.NI_DGRAM])
   in
   run_in_systhread (fun () ->
     let Unix.{ni_hostname; ni_service} = Unix.getnameinfo sockaddr options in

@@ -122,6 +122,8 @@ module Sockaddr = struct
 
   type datagram = [
     | `Udp of Ipaddr.v4v6 * int
+    | `Udp4
+    | `Udp6
   ]
 
   type t = [ stream | datagram ]
@@ -133,6 +135,11 @@ module Sockaddr = struct
       Format.fprintf f "tcp:%a:%d" Ipaddr.pp_for_uri addr port
     | `Udp (addr, port) ->
       Format.fprintf f "udp:%a:%d" Ipaddr.pp_for_uri addr port
+    | `Udp4 ->
+      Format.fprintf f "udp4:"
+    | `Udp6 ->
+      Format.fprintf f "udp6:"
+
 end
 
 class virtual socket = object (_ : #Generic.t)
@@ -170,7 +177,7 @@ let accept_sub ~sw (t : #listening_socket) ~on_error handle =
 
 class virtual datagram_socket = object
   inherit socket
-  method virtual send : Sockaddr.datagram -> Cstruct.t -> unit
+  method virtual send : Ipaddr.v4v6 * int -> Cstruct.t -> unit
   method virtual recv : Cstruct.t -> Sockaddr.datagram * int
 end
 

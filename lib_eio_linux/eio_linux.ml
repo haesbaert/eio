@@ -1000,12 +1000,9 @@ let udp_socket sock = object
 
   method close = FD.close sock
 
-  method send sockaddr buf =
-    let addr = match sockaddr with
-      | `Udp (host, port) ->
-        let host = Eio_unix.Ipaddr.to_unix host in
-        Unix.ADDR_INET (host, port)
-    in
+  method send (host, port) buf =
+    let host = Eio_unix.Ipaddr.to_unix host in
+    let addr = Unix.ADDR_INET (host, port) in
     Low_level.send_msg sock ~dst:addr [buf]
 
   method recv buf =
@@ -1096,6 +1093,8 @@ let socket_domain_of = function
     Eio.Net.Ipaddr.fold host
       ~v4:(fun _ -> Unix.PF_INET)
       ~v6:(fun _ -> Unix.PF_INET6)
+  | `Udp4 -> Unix.PF_INET
+  | `Udp6 -> Unix.PF_INET6
 
 let net = object
   inherit Eio.Net.t
@@ -1156,6 +1155,10 @@ let net = object
       let sock = FD.of_unix ~sw ~seekable:false ~close_unix:true sock_unix in
       Unix.bind sock_unix addr;
       udp_socket sock
+    | `Udp4 | `Udp6 ->
+      Unix.socket (socket_domain_of saddr) Unix.SOCK_DGRAM 0 |>
+      FD.of_unix ~sw ~seekable:false ~close_unix:true |>
+      udp_socket
 
   method getaddrinfo = Low_level.getaddrinfo
 

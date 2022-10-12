@@ -70,6 +70,8 @@ module Sockaddr : sig
 
   type datagram = [
     | `Udp of Ipaddr.v4v6 * int
+    | `Udp4
+    | `Udp6
   ]
   (** Socket addresses that are message-oriented. *)
 
@@ -91,7 +93,7 @@ end
 
 class virtual datagram_socket : object
   inherit socket
-  method virtual send : Sockaddr.datagram -> Cstruct.t -> unit
+  method virtual send : Ipaddr.v4v6 * int -> Cstruct.t -> unit
   method virtual recv : Cstruct.t -> Sockaddr.datagram * int
 end
 
@@ -191,7 +193,7 @@ val datagram_socket : sw:Switch.t -> #t -> Sockaddr.datagram -> <datagram_socket
 (** [datagram_socket ~sw t addr] creates a new datagram socket that data can be sent to
     and received from. The new socket will be closed when [sw] finishes. *)
 
-val send : #datagram_socket -> Sockaddr.datagram -> Cstruct.t -> unit
+val send : #datagram_socket -> Ipaddr.v4v6 * int -> Cstruct.t -> unit
 (** [send sock addr buf] sends the data in [buf] to the address [addr] using the 
     the datagram socket [sock]. *)
 

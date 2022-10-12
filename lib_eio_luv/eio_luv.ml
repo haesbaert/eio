@@ -757,8 +757,7 @@ module Udp = struct
       `Udp (luv_ip_addr_to_eio sockaddr), Luv.Buffer.size buf'
     | Error x -> raise (wrap_flow_error x)
 
-  let send t buf = function
-  | `Udp (host, port) ->
+  let send t buf (host, port) =
     let bufs = cstructv_to_luv [ buf ] in
     match await (fun _loop _fiber -> Luv.UDP.send (Handle.get "send" t) bufs (luv_addr_of_eio host port)) with
     | Ok () -> ()
@@ -770,7 +769,9 @@ let udp_socket endp = object
 
   method close = Handle.close endp
 
-  method send sockaddr bufs = Udp.send endp bufs sockaddr
+  method send addr bufs =
+    Udp.send endp bufs addr
+
   method recv buf =
     let buf = cstruct_to_luv_exn buf in
     Udp.recv endp buf
@@ -835,6 +836,14 @@ let net = object
       let addr = luv_addr_of_eio host port in
       Luv.UDP.bind sock addr |> or_raise;
       udp_socket dg_sock
+    | `Udp4 ->
+      Luv.UDP.init ~domain:`INET ~loop:(get_loop ()) () |> or_raise |>
+      Handle.of_luv ~sw  |>
+      udp_socket
+    | `Udp6 ->
+      Luv.UDP.init ~domain:`INET6 ~loop:(get_loop ()) () |> or_raise |>
+      Handle.of_luv ~sw  |>
+      udp_socket
 
   method getaddrinfo = Low_level.getaddrinfo
 
